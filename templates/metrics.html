@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Many Groups — Segment Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<div class="grain"></div>
+
+{% include "_navbar.html" %}
+
+<main class="wrap">
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow">Groupings</span>
+        <h2>How many customer groups is right?</h2>
+        <p class="panel-desc">There's no single "correct" number of groups — too few and different shoppers get lumped together, too many and the groups start to overlap and lose meaning. These three views each measure grouping quality at different numbers of groups. The dashed line marks the number we recommend for your customer list, where all three broadly agree.</p>
+      </div>
+    </div>
+    <div class="curves-grid">
+      <div class="curve-card">
+        <span class="curve-title">Tightness of groups <em>(lower is better)</em></span>
+        <svg class="curve-svg" id="wcssSvg" viewBox="0 0 380 220"></svg>
+      </div>
+      <div class="curve-card">
+        <span class="curve-title">Overall grouping quality <em>(higher is better)</em></span>
+        <svg class="curve-svg" id="silSvg" viewBox="0 0 380 220"></svg>
+      </div>
+      <div class="curve-card">
+        <span class="curve-title">Group overlap <em>(lower is better)</em></span>
+        <svg class="curve-svg" id="dbiSvg" viewBox="0 0 380 220"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow">The numbers</span>
+        <h2>Quality at each number of groups</h2>
+        <p class="panel-desc">The exact figures behind the charts above. The highlighted row is the recommended number of groups.</p>
+      </div>
+    </div>
+    <div class="table-shell">
+      <table class="data-table" id="metricsTable">
+        <thead>
+          <tr>
+            <th>Number of groups</th>
+            <th>Tightness of groups</th>
+            <th>Overall quality</th>
+            <th>Group overlap</th>
+          </tr>
+        </thead>
+        <tbody id="metricsTableBody">
+          <tr><td colspan="4" class="table-loading">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Segment Atlas — turning your customer list into clear, actionable shopper groups.</p>
+</footer>
+
+<script src="/static/js/common.js"></script>
+<script src="/static/js/metrics.js"></script>
+</body>
+</html>

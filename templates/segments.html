@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Groups — Segment Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<div class="grain"></div>
+
+{% include "_navbar.html" %}
+
+<main class="wrap">
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow">Groups</span>
+        <h2>Who's in each group</h2>
+        <p class="panel-desc">Your customers fall into a handful of natural groups based on how much they earn and how much they spend at the mall. Each card below is one group — its size, and what a typical customer in it looks like. Use these to tailor promotions, loyalty perks, and marketing to the right shoppers.</p>
+      </div>
+    </div>
+    <div class="segment-grid" id="segmentGrid"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow">The numbers</span>
+        <h2>Group breakdown</h2>
+        <p class="panel-desc">The full picture for each group: how many customers, their share of the total, and the typical (and range of) income and spending.</p>
+      </div>
+    </div>
+    <div class="table-shell">
+      <table class="data-table" id="segmentTable">
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th>Customers</th>
+            <th>Share</th>
+            <th>Typical income</th>
+            <th>Middle income</th>
+            <th>Income spread</th>
+            <th>Typical spending</th>
+            <th>Middle spending</th>
+            <th>Spending spread</th>
+          </tr>
+        </thead>
+        <tbody id="segmentTableBody">
+          <tr><td colspan="9" class="table-loading">Loading groups…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Segment Atlas — turning your customer list into clear, actionable shopper groups.</p>
+</footer>
+
+<script src="/static/js/common.js"></script>
+<script src="/static/js/segments.js"></script>
+</body>
+</html>

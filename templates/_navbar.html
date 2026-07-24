@@ -1,0 +1,49 @@
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">◆</span>
+      <div class="brand-text">
+        <span class="brand-title">Segment Atlas</span>
+        <span class="brand-sub">Understand your mall shoppers at a glance</span>
+      </div>
+    </div>
+
+    <nav class="navlinks" aria-label="Primary">
+      <a href="{{ url_for('index') }}" class="navlink {{ 'is-active' if active_page == 'dashboard' else '' }}">Dashboard</a>
+      <a href="{{ url_for('segments_page') }}" class="navlink {{ 'is-active' if active_page == 'segments' else '' }}">Segments</a>
+      <a href="{{ url_for('metrics_page') }}" class="navlink {{ 'is-active' if active_page == 'metrics' else '' }}">Choosing k</a>
+      <a href="{{ url_for('predict_page') }}" class="navlink {{ 'is-active' if active_page == 'predict' else '' }}">Classify</a>
+      <a href="{{ url_for('analyze_page') }}" class="navlink {{ 'is-active' if active_page == 'analyze' else '' }}">Analyze</a>
+    </nav>
+
+    <div class="topbar-meta">
+      <span class="pill" id="pillCustomers">— customers</span>
+      <span class="pill" id="pillK">k = —</span>
+      <a href="{{ url_for('logout') }}" class="pill pill-logout">Log out</a>
+    </div>
+  </div>
+
+  <button class="navlinks-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="navlinks-mobile" id="navMobile" aria-label="Primary mobile">
+    <a href="{{ url_for('index') }}" class="navlink {{ 'is-active' if active_page == 'dashboard' else '' }}">Dashboard</a>
+    <a href="{{ url_for('segments_page') }}" class="navlink {{ 'is-active' if active_page == 'segments' else '' }}">Segments</a>
+    <a href="{{ url_for('metrics_page') }}" class="navlink {{ 'is-active' if active_page == 'metrics' else '' }}">Choosing k</a>
+    <a href="{{ url_for('predict_page') }}" class="navlink {{ 'is-active' if active_page == 'predict' else '' }}">Classify</a>
+    <a href="{{ url_for('analyze_page') }}" class="navlink {{ 'is-active' if active_page == 'analyze' else '' }}">Analyze</a>
+    <a href="{{ url_for('logout') }}" class="navlink navlink-logout">Log out</a>
+  </nav>
+</header>
+
+<script>
+  (function () {
+    var toggle = document.getElementById("navToggle");
+    var mobile = document.getElementById("navMobile");
+    if (!toggle || !mobile) return;
+    toggle.addEventListener("click", function () {
+      var open = mobile.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  })();
+</script>

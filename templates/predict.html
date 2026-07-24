@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Place a Customer — Segment Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<div class="grain"></div>
+
+{% include "_navbar.html" %}
+
+<main class="wrap">
+
+  <section class="panel predictor-panel">
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow">Place a customer</span>
+        <h2>Where would a shopper fit?</h2>
+        <p class="panel-desc">Thinking about a specific customer, or a type of shopper you'd like to attract? Enter their yearly income and how much they spend, and we'll show you which of your customer groups they'd belong to — handy for deciding who a new promotion or product is really aimed at.</p>
+      </div>
+    </div>
+    <div class="predictor-body">
+      <form class="predictor-form" id="predictorForm">
+        <label class="field">
+          <span class="field-label">Yearly income <em id="incomeRangeHint"></em></span>
+          <div class="field-row">
+            <input type="range" id="incomeSlider" min="15" max="137" value="60" step="1">
+            <input type="number" id="incomeInput" min="15" max="137" value="60" step="1">
+          </div>
+        </label>
+        <label class="field">
+          <span class="field-label">Spending level <em id="scoreRangeHint"></em></span>
+          <div class="field-row">
+            <input type="range" id="scoreSlider" min="1" max="100" value="50" step="1">
+            <input type="number" id="scoreInput" min="1" max="100" value="50" step="1">
+          </div>
+        </label>
+        <button type="submit" class="predict-btn">Find their group</button>
+        <p class="predict-error" id="predictError" hidden></p>
+      </form>
+      <div class="predictor-result" id="predictorResult">
+        <div class="result-placeholder" id="resultPlaceholder">
+          <span class="result-placeholder-mark">＋</span>
+          <p>Set an income and spending level, then find their group — the answer appears here, and their spot shows up on the map below.</p>
+        </div>
+        <div class="result-card" id="resultCard" hidden>
+          <span class="result-eyebrow">They'd belong to</span>
+          <span class="result-segment" id="resultSegment">—</span>
+          <div class="result-details">
+            <div><span>Fit for this group</span><strong id="resultDistance">—</strong></div>
+            <div><span>Group's typical shopper</span><strong id="resultCentroid">—</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scatter-shell predictor-map-shell">
+      <svg id="scatterSvg" viewBox="0 0 860 400" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="scatter-tooltip" id="scatterTooltip"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Segment Atlas — turning your customer list into clear, actionable shopper groups.</p>
+</footer>
+
+<script src="/static/js/common.js"></script>
+<script src="/static/js/predict.js"></script>
+</body>
+</html>

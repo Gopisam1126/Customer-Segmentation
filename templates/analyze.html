@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyze — Segment Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<div class="grain"></div>
+
+{% include "_navbar.html" %}
+
+<main class="wrap">
+
+  <!-- ── Section 1: Upload a dataset ─────────────────────────────── -->
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow">Analyze · Your data</span>
+        <h2>Bring your own customer list</h2>
+        <p class="panel-desc">Have your own customer data? Upload a spreadsheet (Excel or CSV) that includes each customer's yearly income and spending level, and the whole dashboard — group profiles, sizes, and charts — instantly rebuilds around your customers. Your file needs a column for yearly income (in thousands) and one for spending level (1–100).</p>
+      </div>
+    </div>
+
+    <div class="dataset-status" id="datasetStatus">
+      <span class="dataset-status-dot" id="datasetStatusDot"></span>
+      <span id="datasetStatusText">Current data: —</span>
+      <button type="button" class="dataset-reset-btn" id="datasetResetBtn" hidden>Go back to sample data</button>
+    </div>
+
+    <form class="upload-form" id="uploadForm">
+      <label class="dropzone" id="dropzone" for="fileInput">
+        <span class="dropzone-mark">⤢</span>
+        <span class="dropzone-title" id="dropzoneTitle">Drop your Excel or CSV file here, or click to browse</span>
+        <span class="dropzone-sub">.csv · .xlsx · .xls</span>
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" hidden>
+      </label>
+      <div class="upload-actions">
+        <button type="submit" class="predict-btn" id="uploadBtn" disabled>Analyze my customers</button>
+        <span class="upload-filename" id="uploadFilename"></span>
+      </div>
+      <p class="predict-error" id="uploadError" hidden></p>
+      <p class="upload-success" id="uploadSuccess" hidden></p>
+    </form>
+
+    <div class="upload-summary" id="uploadSummary" hidden>
+      <div class="upload-summary-item">
+        <span class="upload-summary-label">Customers analyzed</span>
+        <span class="upload-summary-value" id="sumRows">—</span>
+      </div>
+      <div class="upload-summary-item">
+        <span class="upload-summary-label">Groups found</span>
+        <span class="upload-summary-value" id="sumK">—</span>
+      </div>
+      <div class="upload-summary-item">
+        <span class="upload-summary-label">Best-fit groups</span>
+        <span class="upload-summary-value" id="sumSuggestedK">—</span>
+      </div>
+      <div class="upload-summary-item">
+        <span class="upload-summary-label">Income range (k / yr)</span>
+        <span class="upload-summary-value" id="sumIncome">—</span>
+      </div>
+      <div class="upload-summary-item">
+        <span class="upload-summary-label">Spending range</span>
+        <span class="upload-summary-value" id="sumScore">—</span>
+      </div>
+      <a class="upload-summary-cta" href="{{ url_for('index') }}">See your dashboard →</a>
+    </div>
+  </section>
+
+  <!-- ── Section 2: Search a customer (preserved) ────────────────── -->
+  <section class="panel search-panel">
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow">Analyze · Find a shopper</span>
+        <h2>Look up a customer</h2>
+        <p class="panel-desc">Want to know which group a particular shopper belongs to? Search by their name or customer number to see their group, income, and spending at a glance.</p>
+      </div>
+    </div>
+
+    <form class="search-form" id="searchForm" autocomplete="off">
+      <div class="search-input-wrap">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="Type a name or customer number…"
+          autocomplete="off"
+          aria-autocomplete="list"
+          aria-expanded="false"
+          role="combobox"
+          aria-controls="searchSuggestions"
+        >
+        <ul class="search-suggestions" id="searchSuggestions" role="listbox" hidden></ul>
+      </div>
+      <button type="submit" class="predict-btn">Search</button>
+    </form>
+
+    <p class="search-hint" id="searchHint">
+      Try a name like Aarav Mehta, Priya Nair, or Sara Thompson — or a customer number such as 12.
+    </p>
+
+    <div class="search-results" id="searchResults">
+      <div class="result-placeholder" id="searchPlaceholder">
+        <span class="result-placeholder-mark">⌕</span>
+        <p>Your search results will appear here.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Segment Atlas — turning your customer list into clear, actionable shopper groups.</p>
+</footer>
+
+<script src="/static/js/common.js"></script>
+<script src="/static/js/analyze.js"></script>
+</body>
+</html>

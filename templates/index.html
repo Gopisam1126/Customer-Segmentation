@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Segment Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<div class="grain"></div>
+
+{% include "_navbar.html" %}
+
+<main class="wrap">
+
+  <!-- ── Overview strip ─────────────────────────────────────────── -->
+  <section class="stats-strip" id="statsStrip" aria-label="Overview">
+    <div class="stat-card">
+      <span class="stat-label">Customers</span>
+      <span class="stat-value" id="statCustomers">—</span>
+      <span class="stat-foot">in this analysis</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Customer groups</span>
+      <span class="stat-value" id="statSegments">—</span>
+      <span class="stat-foot">distinct shopper types found</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Grouping quality</span>
+      <span class="stat-value" id="statSilhouette">—</span>
+      <span class="stat-foot">higher means cleaner groups</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Group separation</span>
+      <span class="stat-value" id="statDBI">—</span>
+      <span class="stat-foot">lower means groups overlap less</span>
+    </div>
+    <div class="stat-card accent">
+      <span class="stat-label">Recommended groups</span>
+      <span class="stat-value" id="statK">—</span>
+      <span class="stat-foot" id="statKFoot">the best split for this list</span>
+    </div>
+  </section>
+
+  <!-- ── Hero: scatter plot ─────────────────────────────────────── -->
+  <section class="panel hero-panel">
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow">01 — Customer map</span>
+        <h2>Every customer, by income and spending</h2>
+        <p class="panel-desc">Each dot is one customer, placed by their yearly income (left to right) and how much they spend at the mall (bottom to top). Colours show which group each customer belongs to. The dark diamonds mark the "typical customer" at the centre of each group.</p>
+      </div>
+      <div class="legend" id="scatterLegend"></div>
+    </div>
+    <div class="scatter-shell">
+      <svg id="scatterSvg" viewBox="0 0 860 560" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="scatter-tooltip" id="scatterTooltip"></div>
+    </div>
+  </section>
+
+  <!-- ── Where to go next ─────────────────────────────────────────── -->
+  <section class="panel nextsteps-panel">
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow">Explore</span>
+        <h2>Dig into your customers</h2>
+        <p class="panel-desc">Everything below is built from the same customer list shown above.</p>
+      </div>
+    </div>
+    <div class="nextsteps-grid">
+      <a class="nextstep-card" href="{{ url_for('segments_page') }}">
+        <span class="nextstep-eyebrow">Groups</span>
+        <span class="nextstep-title">Who's in each group</span>
+        <span class="nextstep-desc">A profile of every customer group — size, typical income, and spending.</span>
+      </a>
+      <a class="nextstep-card" href="{{ url_for('metrics_page') }}">
+        <span class="nextstep-eyebrow">Groupings</span>
+        <span class="nextstep-title">Why this many groups</span>
+        <span class="nextstep-desc">See how we landed on the recommended number of customer groups.</span>
+      </a>
+      <a class="nextstep-card" href="{{ url_for('predict_page') }}">
+        <span class="nextstep-eyebrow">Place a customer</span>
+        <span class="nextstep-title">Where would a shopper fit?</span>
+        <span class="nextstep-desc">Enter an income and spending level to see which group they'd join.</span>
+      </a>
+      <a class="nextstep-card" href="{{ url_for('analyze_page') }}">
+        <span class="nextstep-eyebrow">Analyze</span>
+        <span class="nextstep-title">Bring your own data or find a customer</span>
+        <span class="nextstep-desc">Upload a new customer list, or look someone up by name or ID.</span>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Segment Atlas — turning your customer list into clear, actionable shopper groups.</p>
+</footer>
+
+<script src="/static/js/common.js"></script>
+<script src="/static/js/dashboard.js"></script>
+</body>
+</html>
