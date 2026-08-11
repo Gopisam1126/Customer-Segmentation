@@ -37,7 +37,7 @@ from preprocessor import DataPreprocessor
 from clustering import CustomerSegmenter
 from evaluator import ClusterEvaluator
 from auth import DEMO_USERNAME, verify_credentials
-from customer_directory import search_directory, suggest_directory
+from customer_directory import build_directory, search_directory, suggest_directory
 from dataset_manager import (
     validate_and_stage, apply_runtime_config, DatasetError,
     DEFAULT_INCOME_RANGE, DEFAULT_SCORE_RANGE, DEFAULT_K_MAX,
@@ -101,6 +101,25 @@ HOST = "127.0.0.1"
 PORT = 5000
 
 
+@app.template_global()
+def asset(path: str) -> str:
+    """
+    Static URL stamped with the file's modification time, e.g.
+    /static/js/analyze.js?v=1723380000.
+
+    Without this the browser happily reuses a cached copy of the CSS/JS
+    after the file on disk has changed, so a fix can look like it did not
+    apply until the user forces a reload. The stamp changes whenever the
+    file does, which makes the reload automatic.
+    """
+    url = f"/static/{path}"
+    try:
+        stamp = int(os.path.getmtime(os.path.join(app.static_folder, path)))
+    except OSError:
+        return url
+    return f"{url}?v={stamp}"
+
+
 # ── Auth helpers ──────────────────────────────────────────────────────────────
 
 def login_required(view_func):
@@ -125,7 +144,8 @@ _state = {
 }
 
 
-def build_pipeline(csv_path: str = None, optimal_k: int = None) -> None:
+def build_pipeline(csv_path: str = None, optimal_k: int = None,
+                   use_demo_names: bool = True) -> None:
     """
     Runs the exact same sequence as main.py Steps 1-4, then caches every
     object the API needs. No clustering/preprocessing logic lives here —
@@ -134,6 +154,10 @@ def build_pipeline(csv_path: str = None, optimal_k: int = None) -> None:
     csv_path / optimal_k let a freshly uploaded dataset be fitted through
     the SAME call path as the default dataset; when omitted, behaviour is
     identical to the original app.py (uses config.DATASET_CSV / OPTIMAL_K).
+
+    use_demo_names is False for user uploads: the hardcoded demo names
+    belong to the sample data's CustomerIDs and must not be pinned onto a
+    different dataset's customers.
     """
     path = csv_path or config.DATASET_CSV
     k = optimal_k or config.OPTIMAL_K
@@ -159,6 +183,9 @@ def build_pipeline(csv_path: str = None, optimal_k: int = None) -> None:
     _state["df_annotated"] = df_annotated
     _state["cluster_summary"] = cluster_summary
     _state["optimal_k"] = k
+    # Rebuild the searchable name/ID directory from whichever dataset was
+    # just fitted, so "look up a customer" always follows the active data.
+    _state["directory"] = build_directory(df_annotated, use_demo_names=use_demo_names)
 
 
 # ── Auth routes ───────────────────────────────────────────────────────────────
@@ -410,11 +437,18 @@ def api_config():
 @login_required
 def api_dataset():
     """Which dataset is currently active (default, or a user upload)."""
+    directory = _state.get("directory", {})
     return jsonify({
         "label": _state["dataset_label"],
         "isDefault": _state["dataset_is_default"],
         "nRows": int(len(_state["df_annotated"])),
         "optimalK": _state["optimal_k"],
+        # Lets the search box tell the user what they can actually search on.
+        "hasNames": directory.get("hasNames", False),
+        "hasIds": directory.get("hasIds", False),
+        "nameSource": directory.get("nameSource", "none"),
+        "sampleIds": directory.get("sampleIds", []),
+        "sampleNames": directory.get("sampleNames", []),
     })
 
 
@@ -454,7 +488,8 @@ def api_upload():
     )
 
     try:
-        build_pipeline(csv_path=staged["csv_path"], optimal_k=staged["safe_optimal_k"])
+        build_pipeline(csv_path=staged["csv_path"], optimal_k=staged["safe_optimal_k"],
+                       use_demo_names=False)
     except Exception as exc:
         return jsonify({"error": f"We couldn't analyze this file: {exc}"}), 400
 
@@ -491,19 +526,19 @@ def api_reset_dataset():
 @login_required
 def api_search():
     """
-    Search the hardcoded demo customer directory by name or CustomerID,
+    Search the ACTIVE dataset's customer directory by name or CustomerID,
     then attach each match's REAL classification by looking up its row
     in the actual annotated DataFrame produced by the fitted pipeline
     (clustering.py's CustomerSegmenter). No classification is invented
     here — it's the same ClusterID/SegmentLabel main.py would produce.
 
-    If a non-default dataset is active, the hardcoded demo directory's
-    CustomerIDs likely don't correspond to real rows anymore — matches
-    that can't be found in the current DataFrame are simply omitted,
-    and the frontend explains why via /api/dataset's isDefault flag.
+    The directory is rebuilt on every pipeline fit, so an uploaded
+    dataset is searchable by its own CustomerIDs (and by its own names,
+    if the file has a name column) rather than by the sample data's.
     """
     query = request.args.get("q", "")
-    matches = search_directory(query)
+    directory = _state.get("directory", {})
+    matches = search_directory(query, directory)
 
     df = _state["df_annotated"]
     seg = _state["seg"]
@@ -525,7 +560,7 @@ def api_search():
         row = row.iloc[0]
         results.append({
             "customerId": m["customerId"],
-            "name": m["name"],
+            "name": m["name"] or f"Customer #{m['customerId']}",
             "age": int(row["Age"]) if "Age" in df.columns and not pd.isna(row["Age"]) else None,
             "gender": row["Gender"] if "Gender" in df.columns else None,
             "income": float(row["AnnualIncome_k"]),
@@ -535,7 +570,12 @@ def api_search():
             "color": colour_of[row["SegmentLabel"]],
         })
 
-    return jsonify({"query": query, "results": results, "dataset_is_default": _state["dataset_is_default"]})
+    return jsonify({
+        "query": query,
+        "results": results,
+        "dataset_is_default": _state["dataset_is_default"],
+        "has_names": directory.get("hasNames", False),
+    })
 
 
 @app.route("/api/search/suggest")
@@ -543,13 +583,13 @@ def api_search():
 def api_search_suggest():
     """
     Lightweight autocomplete: up to 8 name/ID suggestions for whatever
-    has been typed so far, from the same hardcoded demo directory
+    has been typed so far, from the same active-dataset directory
     /api/search matches against. Kept as a separate, tiny endpoint so
     the frontend can call it on every keystroke without re-running a
     full search-and-classify pass each time.
     """
     query = request.args.get("q", "")
-    suggestions = suggest_directory(query, limit=8)
+    suggestions = suggest_directory(query, _state.get("directory", {}), limit=8)
     return jsonify({"suggestions": suggestions})
 
 

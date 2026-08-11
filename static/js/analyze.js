@@ -98,8 +98,8 @@ async function uploadDataset(file) {
   pendingFile = null;
 
   hydrateTopbarPills();
-  refreshDatasetStatus();
-  updateSearchAvailability(false);
+  refreshDatasetStatus();   // also refreshes the search hint for the new data
+  clearSearch();            // old dataset's results no longer apply
 }
 
 async function resetDataset() {
@@ -121,8 +121,8 @@ async function resetDataset() {
   btn.textContent = "Go back to sample data";
   btn.disabled = false;
   hydrateTopbarPills();
-  refreshDatasetStatus();
-  updateSearchAvailability(true);
+  refreshDatasetStatus();   // also refreshes the search hint for the new data
+  clearSearch();            // old dataset's results no longer apply
 }
 
 async function refreshDatasetStatus() {
@@ -137,7 +137,7 @@ async function refreshDatasetStatus() {
   const dot = document.getElementById("datasetStatusDot");
   dot.classList.toggle("is-custom", !data.isDefault);
   document.getElementById("datasetResetBtn").hidden = data.isDefault;
-  updateSearchAvailability(data.isDefault);
+  updateSearchAvailability(data);
 }
 
 // ══ Section 2: customer search (with suggestions) ══════════════════════════
@@ -202,7 +202,7 @@ function renderSuggestions() {
 
   list.innerHTML = currentSuggestions.map((s, i) => `
     <li class="search-suggestion" role="option" data-idx="${i}">
-      <span class="suggestion-name">${escapeHtml(s.name)}</span>
+      <span class="suggestion-name">${escapeHtml(s.display || s.name || "")}</span>
       <span class="suggestion-id">#${escapeHtml(s.customerId)}</span>
     </li>
   `).join("");
@@ -225,11 +225,16 @@ function moveActive(delta) {
   items.forEach((li, i) => li.classList.toggle("is-active", i === activeSuggestion));
 }
 
+// Search with the suggestion's `query`, not its visible label: a customer
+// with no name is shown as "Customer #1003" but must be looked up by its
+// bare ID, since the label itself matches nothing.
 function chooseSuggestion(s) {
+  if (!s) return;
+  const term = s.query || s.name || s.customerId;
   const input = document.getElementById("searchInput");
-  input.value = s.name;
+  input.value = term;
   hideSuggestions();
-  runSearch(s.name);
+  runSearch(term);
 }
 
 function hideSuggestions() {
@@ -238,6 +243,22 @@ function hideSuggestions() {
   list.innerHTML = "";
   activeSuggestion = -1;
   document.getElementById("searchInput").setAttribute("aria-expanded", "false");
+}
+
+// Reset the search box back to its empty state — used when the active
+// dataset changes, since results from the previous one are meaningless.
+function clearSearch() {
+  const input = document.getElementById("searchInput");
+  if (input) input.value = "";
+  hideSuggestions();
+  const resultsEl = document.getElementById("searchResults");
+  if (resultsEl) {
+    resultsEl.innerHTML = `
+      <div class="result-placeholder" id="searchPlaceholder">
+        <span class="result-placeholder-mark">⌕</span>
+        <p>Search results will appear here.</p>
+      </div>`;
+  }
 }
 
 async function runSearch(query) {
@@ -262,9 +283,11 @@ async function runSearch(query) {
   }
 
   if (!data.results.length) {
-    const extra = data.dataset_is_default
+    // Searching now always runs against the active dataset, so the only
+    // useful extra hint is when that dataset has no names to match on.
+    const extra = data.has_names
       ? ""
-      : " Note: you're viewing your own uploaded data, and this name list belongs to the sample customers — switch back to sample data to look these names up.";
+      : " This dataset doesn't include customer names, so try searching by customer number instead.";
     resultsEl.innerHTML = `<p class="search-empty">We couldn't find anyone matching “${escapeHtml(query)}”.${extra}</p>`;
     return;
   }
@@ -289,17 +312,39 @@ function renderResultCard(r) {
   `;
 }
 
-// When the user's own data is loaded, the sample name list won't line up
-// with its customer numbers — surface a gentle note rather than confusing them.
-function updateSearchAvailability(isDefault) {
+// The search box follows whichever dataset is loaded, so the hint has to
+// say what THAT dataset can actually be searched on: its own names if the
+// file has a name column, otherwise its own customer numbers.
+function updateSearchAvailability(info) {
   const hint = document.getElementById("searchHint");
   if (!hint) return;
-  if (isDefault) {
+
+  // Accept a plain boolean for backwards compatibility with older callers.
+  const data = typeof info === "boolean" ? { isDefault: info } : (info || {});
+
+  const names = (data.sampleNames || []).slice(0, 2).join(" or ");
+  const ids = (data.sampleIds || []).slice(0, 2).join(" or ");
+
+  if (data.isDefault) {
     hint.textContent =
       "Try a name like Aarav Mehta, Priya Nair, or Sara Thompson — or a customer number such as 12.";
-  } else {
+  } else if (data.hasIds === false) {
     hint.textContent =
-      "You're viewing your own uploaded data. This name list belongs to the sample customers, so name searches may not match — switch back to sample data above to use it.";
+      "Your file doesn't include a customer number or name column, so there's nothing to look customers up by. Everything else on the dashboard still works.";
+  } else if (data.nameSource === "generated") {
+    // Names here are placeholders we generated, not data from the file —
+    // say so, so nobody mistakes them for real customer names.
+    hint.textContent = names
+      ? `Your file has no name column, so display names are generated for the demo — try ${names}, or a customer number such as ${ids}.`
+      : "Your file has no name column, so display names are generated for the demo — you can also search by customer number.";
+  } else if (data.hasNames) {
+    hint.textContent = names
+      ? `Searching your uploaded customers — try a name like ${names}, or a customer number.`
+      : "Searching your uploaded customers — type a name or a customer number.";
+  } else {
+    hint.textContent = ids
+      ? `Search your uploaded customers by number — try ${ids}.`
+      : "Search your uploaded customers by number.";
   }
 }
 
